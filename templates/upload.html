@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Document Analyzer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --white: #ffffff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .header p {
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        .file-upload-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            border: 2px dashed var(--primary-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .file-upload:hover {
+            background-color: rgba(129, 140, 248, 0.1);
+        }
+        
+        .file-upload i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload span {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: #4338ca;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1><i class="fas fa-file-alt"></i> Document Analyzer</h1>
+                <p>Upload a PDF and ask questions about its content</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="form-group">
+                    <label for="file">PDF Document</label>
+                    <div class="file-upload-wrapper">
+                        <div class="file-upload" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Click to select a PDF file</span>
+                            <input type="file" name="file" id="fileInput" class="file-input" accept=".pdf" required>
+                        </div>
+                        <div class="file-name" id="fileName"></div>
+                        <div class="error-message" id="fileError">Please select a PDF file</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="prompt">Your Question</label>
+                    <textarea name="prompt" id="prompt" placeholder="What would you like to know about this document?" required></textarea>
+                    <div class="error-message" id="questionError">Please enter your question</div>
+                </div>
+
+                <button type="submit" class="btn">
+                    <i class="fas fa-search"></i> Analyze Document
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const fileNameDisplay = document.getElementById('fileName');
+            const fileError = document.getElementById('fileError');
+            const questionError = document.getElementById('questionError');
+            const form = document.getElementById('uploadForm');
+
+            // File selection handling
+            fileInput.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    if (file.type === 'application/pdf') {
+                        fileNameDisplay.textContent = `Selected: ${file.name}`;
+                        fileError.style.display = 'none';
+                        fileUploadArea.style.borderColor = 'var(--primary-light)';
+                    } else {
+                        fileError.style.display = 'block';
+                        fileUploadArea.style.borderColor = '#dc2626';
+                        fileNameDisplay.textContent = '';
+                    }
+                }
+            });
+
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    fileError.style.display = 'block';
+                    fileUploadArea.style.borderColor = '#dc2626';
+                    isValid = false;
+                } else if (fileInput.files[0].type !== 'application/pdf') {
+                    fileError.style.display = 'block';
+                    fileUploadArea.style.borderColor = '#dc2626';
+                    isValid = false;
+                }
+                
+                if (!document.getElementById('prompt').value.trim()) {
+                    questionError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            // Drag and drop functionality
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--primary)';
+                fileUploadArea.style.backgroundColor = 'rgba(129, 140, 248, 0.1)';
+            });
+
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.style.borderColor = 'var(--primary-light)';
+                fileUploadArea.style.backgroundColor = '';
+            });
+
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.style.borderColor = 'var(--primary-light)';
+                fileUploadArea.style.backgroundColor = '';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
