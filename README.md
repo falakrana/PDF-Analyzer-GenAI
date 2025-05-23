@@ -1,4 +1,4 @@
-# 📄 PDF Research Analyzer
+# 📄 PDF Analyzer
 
 An AI-powered web application that analyzes academic PDF files and answers user queries using Google Gemini via LangChain. The system leverages document embeddings and vector similarity to provide meaningful insights based on the uploaded content.
 
